@@ -1,15 +1,83 @@
-version: '3.3'
+version: "3.3"
 
-# Cloudflare DNS Token = SkWxzNwo9vpDxZRPuDL26w05fFkmBMCrGVw042n
-
-networks:
-  default:
-    driver: bridge
-  npm_proxy:
-    driver: bridge
-    name: npm_proxy
+# networks:
+#   default:
+#     driver: bridge
+#   npm_proxy:
+#     driver: bridge
+#     name: npm_proxy
 
 services:
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    # environment:
+      # PUID: 3000
+      # PGID: 3000
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/docker/config/homepage:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+      - /mnt/prox-share:/mnt/prox-share
+      - ~/docker/config/homepage/images/:/app/public/images
+    env_file: .env
+    restart: unless-stopped
+
+  wg-easy:
+    image: ghcr.io/wg-easy/wg-easy
+    container_name: wg-easy
+    volumes:
+      - ~/docker/config/wg-easy:/etc/wireguard
+    environment:
+      - WG_HOST=terrhyland.com
+      - PASSWORD=$WG_EASY_PASSWORD
+      - PORT=51821
+      - WG_PORT=51820
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=3000
+      - PGID=3000
+      - TZ=America/New_York
+    volumes:
+      - ~/docker/config/bazaarr:/config
+      - /mnt/prox-share/data:/data
+      # - /mnt/prox-share/data:/data/media/tv
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+    # networks:
+    #   - npm_proxy
+
+  mtg-spoiler-bot:
+    build:
+      context: ./MTG-Spoiler-Bot
+      dockerfile: Dockerfile
+    container_name: mtg-spoiler-bot
+    ports:
+      - 3001:3000
+    volumes:
+      - ~/docker/config/mtg-spoiler-bot/spoiledCards.txt:/usr/src/app/spoiledCards.txt
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      - TZ=America/New_York
+      - PUID=3000
+      - PGID=3000
 
   vaultwarden:
     image: vaultwarden/server:latest
@@ -19,30 +87,10 @@ services:
       DOMAIN: "https://password.terrhyland.com"
     volumes:
       - ~/docker/config/vaultwarden:/data
-    networks:
-      - npm_proxy
-
-  npm:
-    image: jc21/nginx-proxy-manager:latest
-    restart: unless-stopped
-    container_name: nginx-proxy-manager
     ports:
-      - 80:80
-      - 443:443
-      - 81:81
-    volumes:
-      - ~/docker/config/npm/config:/config
-      - ~/docker/config/npm/letsencrypt:/etc/letsencrypt
-      - ~/docker/config/npm/data:/data
-    environment:
-#      - DB_SQLITE_FILE=/config/database.sqlite
-#      - DISABLE_IPV6=true
-      - PUID=3000
-      - PGID=3000
-    networks:
-      - npm_proxy
-    security_opt:
-      - no-new-privileges=true
+      - 8008:80
+    # networks:
+    #   - npm_proxy
 
   overseerr:
     image: sctx/overseerr:latest
@@ -57,38 +105,36 @@ services:
       - 5055:5055
     volumes:
       - ~/docker/config/overseer:/app/config
-    networks:
-      - npm_proxy
+    # networks:
+    #   - npm_proxy
 
   gluetun:
     image: qmcgaw/gluetun
     restart: unless-stopped
     container_name: gluetun
-    # line above must be uncommented to allow external containers to connect. See https://github.com/qdm12/gluetun/wiki/Connect-a-container-to-gluetun#external-container-to-gluetun
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-#      - 8888:8888/tcp # HTTP proxy
+      #      - 8888:8888/tcp # HTTP proxy
       - 8388:8388/tcp # Shadowsocks
       - 8388:8388/udp # Shadowsocks
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
+      - 8000:8000/tcp
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ~/docker/config/gluetun:/config
     environment:
-      # See https://github.com/qdm12/gluetun/wiki
+      - HTTP_CONTROL_SERVER_ADDRESS=:8000
+      - HTTP_CONTROL_SERVER_LOG=on
       - VPN_SERVICE_PROVIDER=private internet access
       - VPN_TYPE=openvpn
       # OpenVPN:
-      - OPENVPN_USER=p9227729
-      - OPENVPN_PASSWORD=sagyQxDt8i
-      # Wireguard:
-      # - WIREGUARD_PRIVATE_KEY=wOEI9rqqbDwnN8/Bpp22sVz48T71vJ4fYmFWujulwUU=
-      # - WIREGUARD_ADDRESSES=10.64.222.21/32
+      - OPENVPN_USER=$OPENVPN_USERNAME
+      - OPENVPN_PASSWORD=$OPENVPN_PASSWORD
       # Timezone for accurate log times
       - TZ=America/New_York
 
@@ -104,10 +150,10 @@ services:
     volumes:
       - ~/docker/config/qbittorrent:/config
       - /mnt/prox-share/data/torrents:/data/torrents
-#    ports:
-#      - 8085:8085
-#      - 6881:6881
-#      - 6881:6881/udp
+    #    ports:
+    #      - 8085:8085
+    #      - 6881:6881
+    #      - 6881:6881/udp
     restart: unless-stopped
 
   radarr:
@@ -124,8 +170,8 @@ services:
     ports:
       - 7878:7878
     restart: unless-stopped
-    networks:
-      - npm_proxy
+    # networks:
+    #   - npm_proxy
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -141,8 +187,8 @@ services:
     ports:
       - 8989:8989
     restart: unless-stopped
-    networks:
-      - npm_proxy
+    # networks:
+    #   - npm_proxy
 
   sonarr2:
     image: lscr.io/linuxserver/sonarr:latest
@@ -157,8 +203,8 @@ services:
       - /mnt/prox-share/data:/data
     ports:
       - 8988:8989
-    networks:
-      - npm_proxy
+    # networks:
+    #   - npm_proxy
     restart: unless-stopped
 
   portainer:
@@ -175,9 +221,8 @@ services:
       - TZ=America/New_York
     ports:
       - 9000:9000
-    networks:
-      - npm_proxy
-    
+    # networks:
+    #   - npm_proxy
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
@@ -192,8 +237,8 @@ services:
     ports:
       - 9696:9696
     restart: unless-stopped
-    networks:
-      - npm_proxy
+    # networks:
+    #   - npm_proxy
 
   wyze-bridge:
     container_name: wyze-bridge
@@ -203,21 +248,21 @@ services:
       - 1935:1935 # RMTP
       - 8554:8554 # RSTP
       - 8888:8888 # HLS
-      - 5000:5000 # Web-UI
+      - 5001:5000 # Web-UI
     environment:
       - WYZE_EMAIL=$WYZE_EMAIL
       - WYZE_PASSWORD=$WYZE_PASSWORD
       - ENABLE_AUDIO=True
       - API_ID=4e4a9de7-ebe4-4d24-8236-e7f1038db57c
       - API_KEY=$WYZE_API_KEY
-    networks:
-      - npm_proxy
+    # networks:
+    #   - npm_proxy
 
-  spotify-poppin:
-    container_name: spotify-poppin
-    restart: unless-stopped
-    build: ~/docker/Spotify-Poppin/
-    networks:
-      - npm_proxy
-    ports:
-      - 8889:8889
+  # spotify-poppin:
+  # container_name: spotify-poppin
+  # restart: unless-stopped
+  # image: terrhy999/spotify-poppin:latest
+  # networks:
+  # - npm_proxy
+  # ports:
+  # - 8889:8889

@@ -1,0 +1,109 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+
+
+
+- Services:
+
+    - Gluetun:
+        icon: gluetun
+        server: my-docker
+        container: gluetun
+        description: VPN container
+        widget:
+            type: gluetun
+            url: http://192.168.0.156:8000
+            
+    - Overseerr:
+        server: my-docker
+        container: overseerr
+        icon: overseerr
+        description: Media requests
+        href: "https://overseerr.terrhyland.com"
+        widget:
+            type: overseerr
+            url: "https://overseerr.terrhyland.com"
+            key: {{HOMEPAGE_VAR_OVERSEERR_API_KEY}}
+
+    - Portainer:
+        server: my-docker
+        container: portainer
+        icon: portainer
+        description: Docker container managment
+        href: http://portainer.terrhyland.com
+        widget:
+            type: portainer
+            url: http://192.168.0.156:9000
+            env: 2
+            key: {{HOMEPAGE_VAR_PORTAINER_API_KEY}}
+
+    - Prowlarr:
+        server: my-docker
+        container: prowlarr
+        icon: prowlarr
+        href: http://192.168.0.156:9696
+        description: Media indexing
+        widget:
+            type: prowlarr
+            url: http://192.168.0.156:9696
+            key: {{HOMEPAGE_VAR_PROWLARR_API_KEY}}
+
+    - Proxmox:
+        icon: proxmox
+        siteMonitor: https://192.168.0.218:8006
+        href: https://192.168.0.218:8006
+        description: Hypervisor
+        widget:
+            type: proxmox
+            url: https://192.168.0.218:8006
+            username: api@pam!homepage
+            password: {{HOMEPAGE_VAR_PROXMOX_PASSOWRD}}
+        
+    - Movies:
+        icon: radarr
+        server: my-docker
+        container: radarr
+        href: http://192.168.0.156:7878
+        description: Movie managment
+        widget:
+            type: radarr
+            url: http://192.168.0.156:7878
+            key: {{HOMEPAGE_VAR_RADARR_API_KEY}}
+            enableQueue: false # optional, defaults to false
+
+    - TV:
+        icon: sonarr
+        server: my-docker
+        container: sonarr
+        href: http://192.168.0.156:8989
+        description: TV managment
+        widget:
+            type: sonarr
+            url: http://192.168.0.156:8989
+            key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
+            enableQueue: false # optional, defaults to false
+
+    - Anime:
+        icon: sonarr
+        server: my-docker
+        container: sonarr2
+        href: http://192.168.0.156:8988
+        description: Anime managment
+        widget:
+            type: sonarr
+            url: http://192.168.0.156:8988
+            key: {{HOMEPAGE_VAR_SONARR2_API_KEY}}
+            enableQueue: false
+
+    - TrueNAS:
+        icon: truenas
+        siteMonitor: http://192.168.0.175
+        href: http://192.168.0.175
+        description: Server storage manament
+        widget:
+            type: truenas
+            url: http://192.168.0.175
+            key: {{HOMEPAGE_VAR_TRUENAS_API_KEY}} # not required if using username / password
+            enablePools: true # optional, defaults to false
+            nasType: scale # defaults to scale, must be set to 'core' if using enablePools with TrueNAS Core

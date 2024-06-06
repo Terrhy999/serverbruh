@@ -1,3 +1,9 @@
 /Spotify-Poppin
-/config
 .env
+/config/*
+!/config/homepage
+/config/homepage/*
+!/config/homepage/settings.yaml
+!/config/homepage/services.yaml
+!/config/homepage/docker.yaml
+!/config/homepage/widgets.yaml

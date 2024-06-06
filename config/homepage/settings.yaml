@@ -1,0 +1,28 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/settings
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey
+
+headerStyle: clean
+useEqualHeights: true
+statusStyle: 'dot'
+
+background:
+  image: /images/boat-sailing-painting.jpg
+  # blur: sm
+  saturate: 50
+  brightness: 50
+  opacity: 50
+
+layout:
+  Services:
+    style: row
+    columns: 3
+    header: false
+  Bookmarks:
+    header: false
+    style: row
+    columns: 3
