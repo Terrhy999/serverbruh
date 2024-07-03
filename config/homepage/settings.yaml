@@ -14,8 +14,9 @@ background:
   image: /images/boat-sailing-painting.jpg
   # blur: sm
   saturate: 50
-  brightness: 50
-  opacity: 50
+  brightness: 75
+  opacity: 75
+cardBlur: md
 
 layout:
   Services:
