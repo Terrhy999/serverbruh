@@ -9,6 +9,37 @@ version: "3.3"
 
 services:
 
+  # nextcloud-aio-mastercontainer:
+    # image: nextcloud/all-in-one:latest
+    # init: true
+    # restart: always
+    # container_name: nextcloud-aio-mastercontainer
+    # ports:
+      # - 8081:8080
+    # environment:
+      # - APACHE_IP_BINDING=0.0.0.0
+      # - APACHE_PORT=11000
+      # - NEXTCLOUD_DATADIR=/mnt/ncdata
+      # - WATCHTOWER_DOCKER_SOCKET_PATH=/path/to/docker.sock
+    # volumes:
+      # - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      # - /mnt/proxshare/data/ncdata:/mnt/ncdata
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=America/New_York
+      - LANG=en_GB
+    ports:
+      - "${PORT:-8191}:8191"
+    restart: unless-stopped
+
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
@@ -20,7 +51,7 @@ services:
     volumes:
       - ~/docker/config/homepage:/app/config # Make sure your local config directory exists
       - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
-      - /mnt/prox-share:/mnt/prox-share
+      - /mnt/proxshare:/mnt/proxshare
       - ~/docker/config/homepage/images/:/app/public/images
     env_file: .env
     restart: unless-stopped
@@ -55,8 +86,8 @@ services:
       - TZ=America/New_York
     volumes:
       - ~/docker/config/bazaarr:/config
-      - /mnt/prox-share/data:/data
-      # - /mnt/prox-share/data:/data/media/tv
+      - /mnt/proxshare/data:/data
+      # - /mnt/proxshare/data:/data/media/tv
     ports:
       - 6767:6767
     restart: unless-stopped
@@ -149,7 +180,7 @@ services:
       - WEBUI_PORT=8080
     volumes:
       - ~/docker/config/qbittorrent:/config
-      - /mnt/prox-share/data/torrents:/data/torrents
+      - /mnt/proxshare/data/torrents:/data/torrents
     #    ports:
     #      - 8085:8085
     #      - 6881:6881
@@ -166,7 +197,7 @@ services:
       - UMASK=002
     volumes:
       - ~/docker/config/radarr:/config
-      - /mnt/prox-share/data:/data
+      - /mnt/proxshare/data:/data
     ports:
       - 7878:7878
     restart: unless-stopped
@@ -183,7 +214,7 @@ services:
       - UMASK=002
     volumes:
       - ~/docker/config/sonarr:/config
-      - /mnt/prox-share/data:/data
+      - /mnt/proxshare/data:/data
     ports:
       - 8989:8989
     restart: unless-stopped
@@ -200,7 +231,7 @@ services:
       - UMASK=002
     volumes:
       - ~/docker/config/sonarr2:/config
-      - /mnt/prox-share/data:/data
+      - /mnt/proxshare/data:/data
     ports:
       - 8988:8989
     # networks:
@@ -266,3 +297,7 @@ services:
   # - npm_proxy
   # ports:
   # - 8889:8889
+  
+volumes: # If you want to store the data on a different drive, see https://github.com/nextcloud/all-in-one#how-to-store-the-filesinstallation-on-a-separate-drive
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer

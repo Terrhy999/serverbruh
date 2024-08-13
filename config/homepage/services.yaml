@@ -98,12 +98,12 @@
 
     - TrueNAS:
         icon: truenas
-        siteMonitor: http://192.168.0.175
-        href: http://192.168.0.175
+        siteMonitor: http://192.168.0.169
+        href: http://192.168.0.169
         description: Server storage manament
         widget:
             type: truenas
-            url: http://192.168.0.175
+            url: http://192.168.0.169
             key: {{HOMEPAGE_VAR_TRUENAS_API_KEY}} # not required if using username / password
             enablePools: true # optional, defaults to false
             nasType: scale # defaults to scale, must be set to 'core' if using enablePools with TrueNAS Core

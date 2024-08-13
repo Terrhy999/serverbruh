@@ -22,7 +22,7 @@
 - resources:
     cpu: true
     memory: true
-    disk: /mnt/prox-share
+    disk: /mnt/proxshare
     cputemp: true
     tempmin: 0 # optional, minimum cpu temp
     tempmax: 100 # optional, maximum cpu temp
